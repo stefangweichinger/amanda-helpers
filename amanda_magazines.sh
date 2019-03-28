@@ -9,7 +9,7 @@
 # which tapes are missing
 # which tapes can be removed from the robot
 
-# WIP
+# WIP: still hardcoded, test comments still inside
 
 diff(){
   awk 'BEGIN{RS=ORS=" "}
@@ -77,8 +77,6 @@ for i in "${ARRAY_WANTED[@]}"; do
 done
 #declare -p Array3
 
-#### "L6" muss noch raus aus INVENTORY
-
 # loop ueber INVENTORY: wird das tape $i auch WANTED?
 
 Array4=()
@@ -94,11 +92,14 @@ done
 
 uniq=($(printf "%s\n" "${Array4[@]}" | sort -u));
 
+
+# report the missing tapes
 echo "--- BETA-script 2019 ---"
 echo "  "
 echo "Es fehlen: "
 echo "${Array3[@]}"
 
+# report the tapes which can be removed from the changer
 echo "Raus muessen: "
 echo "${uniq[@]}"
 
