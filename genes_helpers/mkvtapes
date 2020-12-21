@@ -1,0 +1,82 @@
+#!/bin/sh
+# This script will clean out and regenerate a new set of vtapes, label them, and
+# make them ready for amanda's use.  To change the number of vtapes generated
+# just add, or subtract, the number sequence in the "for n in" line below.
+# here, /amandatapes is a 180GB partition on a 200GB drive at /dev/hdd1, the rest being
+# swap and whathaveyou.
+
+# DO NOT run this script without editing it to suit your environment!
+
+# Read the conf
+. /GenesAmandaHelper-0.61/gene.conf
+
+
+# Get the config name from command line arg #1,
+# just like all other am* commands
+
+if [ $# -ne 1 ] ; then
+	echo "The amanda configuration MUST be the first argument to this script"
+	exit 1
+else
+	CONFIGNAME=$1
+	CONFPATH=$BASE_CONFPATH/${CONFIGNAME}
+fi
+echo $BASE_CONFPATH
+
+LOG=/GenesAmandaHelper-0.61/${CONFIGNAME}
+echo $LOG
+mkdir -p $LOG
+LOGNAME=mkvtapes.log
+rm $LOG/$LOGNAME
+date=`date +"%d/%m/%y %H:%M:%S"`
+echo "$0 started on $date" > $LOG/$LOGNAME
+
+echo "CONFIGNAME = $CONFIGNAME" >> $LOG/$LOGNAME
+
+#rm -fR ${VTAPE_LOCATION}
+echo $CONFPATH
+# clean out the old tapelist
+rm -f ${CONFPATH}/tapelist
+
+# now generate a new one for amlabels use.
+touch ${CONFPATH}/tapelist
+#ls -l $CONFPATH
+echo $VTAPE_LOCATION
+
+# Now remake the vtapes.
+for n in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60
+do
+	rm -fR ${VTAPE_LOCATION}/slot${n}
+	mkdir -p ${VTAPE_LOCATION}/slot${n}
+	chmod -v 750 ${VTAPE_LOCATION}/slot${n}
+	rm -f ${VTAPE_LOCATION}/data
+	ln -s ${VTAPE_LOCATION}/slot${n} ${VTAPE_LOCATION}/data
+	/usr/local/sbin/amlabel -f Daily Dailys-${n} slot ${n}
+done
+
+# rm the link we or amlabel leaves
+rm ${VTAPE_LOCATION}/data
+
+# reset it for slot present
+ln -s ${VTAPE_LOCATION}/slot1 ${VTAPE_LOCATION}/data
+echo
+echo slot dirs made
+echo
+
+# show the user the new tapes
+ls -lR ${VTAPE_LOCATION}/data/
+
+# reset the amdump starting point to slot1
+echo 1 > ${CONFPATH}/chg-disk-access
+echo 1 > ${CONFPATH}/chg-disk-slot
+echo 31 > ${CONFPATH}/chg-disk-clean
+
+# and reset the data dirs amanda uses
+#rm -fR $INDICE_PATH
+mkdir -p ${INDICE_PATH}/${CONFIGNAME}
+mkdir -p ${INDICE_PATH}/${CONFIGNAME}/gnutar-lists
+mkdir -p ${INDICE_PATH}/gnutar-lists
+
+# all done
+echo All done!
+
