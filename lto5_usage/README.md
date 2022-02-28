@@ -2,31 +2,34 @@
 
 Main points for the config, these two scripts are called from amanda.
 
+Install binary "zstd" from the repository of your distribution.
+
+Use the two provided scripts:
+
+1. The script "encrypt" goes to "/usr/local/sbin/encrypt"
+Then configure your amanda dumptype with the option:
+
 ```
-# encrypt, use with server_encrypt "/whatever/encrypt":
-#!/bin/sh
+server_encrypt "/usr/local/sbin/encrypt"
+```
 
-AMANDA_HOME=~amanda
-PASSPHRASE=$AMANDA_HOME/.am_passphrase    # required
-RANDFILE=$AMANDA_HOME/.rnd
-export RANDFILE
+2. The script "zstd-compression3" goes to "/usr/local/sbin/zstd-compression3"
+Use it in your amanda dumptype with:
 
-if [ "$1" = -d ]; then
-    /usr/bin/openssl enc -pbkdf2 -d -aes-256-ctr -salt -pass fd:3 3< "${PASSPHRASE}"
+```
+server_custom_compress "/usr/local/sbin/zstd-compression3"
+```
+
+If you want to use multiple different compression levels, copy `zstd-compression3` to `zstd-compression5`, for example
+and edit the zstd-compression-level as in:
+
+```
 else
-    /usr/bin/openssl enc -pbkdf2 -e -aes-256-ctr -salt -pass fd:3 3< "${PASSPHRASE}"
+  zstd -qc -5 -T0
 fi
 ```
 
-```
-# zstd-compression3, use with server_custom_compress "/whatever/zstd-compression3 :
-#!/bin/sh
-if [[ "$1" == "-d" ]]; then
-    zstd -dqcf
-else
-    zstd -qc -3 -T0
-fi
-```
+then call that script in your dumptype definition.
 
 ## source
 
